@@ -191,17 +191,17 @@ Include 6 megatrends. For each:
 {base_prompt}
 """
 
-        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY") or st.secrets["openai"]["api_key"])
+        openai.api_key = st.secrets["openai"]["api_key"]
 
         with st.spinner("Generating AI insights..."):
-            roles_response = client.chat.completions.create(
+            roles_response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": roles_prompt}],
                 temperature=0.7
             )
             roles_html = roles_response.choices[0].message.content
 
-            industries_response = client.chat.completions.create(
+            industries_response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": industries_prompt}],
                 temperature=0.7
