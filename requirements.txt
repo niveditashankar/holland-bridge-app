@@ -1,0 +1,5 @@
+streamlit
+openai
+xhtml2pdf
+email-validator
+
