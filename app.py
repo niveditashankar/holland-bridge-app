@@ -230,3 +230,6 @@ Include 6 megatrends. For each:
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(st.secrets["smtp"]["sender"], st.secrets["smtp"]["password"])
+            smtp.send_message(msg)
+
+        st.success("Success! Your results have been emailed to you!")
