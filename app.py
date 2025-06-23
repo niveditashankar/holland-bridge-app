@@ -84,9 +84,9 @@ st.markdown("---")
 
 # Step 1 – Holland Codes
 if st.session_state.step == 1:
-    st.header("Please select your first interest from the Holland Codes")
+    st.header("Please select your results from the Holland Codes")
     st.multiselect(
-        "Pick up to 3 codes that best reflect you:",
+        "Pick up to 3 codes",
         ["Realistic", "Investigative", "Artistic", "Social", "Enterprising", "Conventional"],
         max_selections=3,
         key="holland"
