@@ -127,6 +127,7 @@ elif st.session_state.step == 6:
     email = st.text_input("Email")
 
     if st.button("📩 Submit"):
+        full_name = f"{first_name.strip()} {last_name.strip()}"
         admired_lives = [
             {"name": st.session_state.get(f"name_{i}", ""),
              "admire": st.session_state.get(f"admire_{i}", ""),
@@ -135,6 +136,8 @@ elif st.session_state.step == 6:
         ]
 
         base_prompt = f"""
+User: {full_name}
+
 ### HOLLAND CODES:
 {', '.join(st.session_state.get("holland", []))}
 ### CORE VALUES:
@@ -156,27 +159,15 @@ elif st.session_state.step == 6:
 
         roles_prompt = f"""
 You are a career strategist. Generate a PDF-style HTML content titled:
-<h1>The Holland Bridge – Aligned Roles</h1>
-Include 6 aligned job roles. For each:
-<b>[Role Name]</b>
-<ul>
-<li><strong>Why it fits:</strong> {{reason}}</li>
-<li><strong>What success looks like:</strong> {{description}}</li>
-<li><strong>Potential job titles:</strong> {{titles}}</li>
-</ul>
+<h1>{full_name} – Holland Bridge: Aligned Roles</h1>
+<p>This is a beta version of the Holland Bridge...</p>
 {base_prompt}
 """
 
         industries_prompt = f"""
 You are a career strategist. Generate a PDF-style HTML content titled:
-<h1>The Holland Bridge – Aligned Megatrends and Industries</h1>
-Include 6 megatrends. For each:
-<b>[Megatrend Name]</b>
-<ul>
-<li><strong>Why it fits:</strong> {{reason}}</li>
-<li><strong>Examples of trends and industries:</strong> {{examples}}</li>
-<li><strong>Industries:</strong> {{industries}}</li>
-</ul>
+<h1>{full_name} – Holland Bridge: Aligned Megatrends and Industries</h1>
+<p>This is a beta version of the Holland Bridge...</p>
 {base_prompt}
 """
 
@@ -201,8 +192,11 @@ Include 6 megatrends. For each:
             with open(output_filename, "wb") as f:
                 pisa.CreatePDF(source_html, dest=f)
 
-        html_to_pdf(roles_html, "roles_report.pdf")
-        html_to_pdf(industries_html, "industries_report.pdf")
+        roles_pdf = f"{full_name} - Holland Bridge - Aligned Roles.pdf"
+        industries_pdf = f"{full_name} - Holland Bridge - Aligned Industries and Megatrends.pdf"
+
+        html_to_pdf(roles_html, roles_pdf)
+        html_to_pdf(industries_html, industries_pdf)
 
         msg = EmailMessage()
         msg['Subject'] = "Your Holland Bridge Reports"
@@ -210,12 +204,9 @@ Include 6 megatrends. For each:
         msg['To'] = email
         msg.set_content("Attached are your personalized Holland Bridge reports.")
 
-        for fname, label in [
-            ("roles_report.pdf", "Holland Bridge - Aligned Roles.pdf"),
-            ("industries_report.pdf", "Holland Bridge - Megatrends and Industries.pdf")
-        ]:
+        for fname in [roles_pdf, industries_pdf]:
             with open(fname, "rb") as f:
-                msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=label)
+                msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=os.path.basename(fname))
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(st.secrets["smtp"]["sender"], st.secrets["smtp"]["password"])
