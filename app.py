@@ -1,14 +1,15 @@
+# === FILE: app.py ===
 import streamlit as st
-import openai
 import os
+from openai import OpenAI
 from xhtml2pdf import pisa
 import smtplib
 from email.message import EmailMessage
 
-# Set page configuration
+# === Streamlit Configuration ===
 st.set_page_config(page_title="The Holland Bridge", layout="centered")
 
-# Inject Suzy Welch website-inspired styles
+# === Custom CSS Styling ===
 st.markdown("""
 <style>
     .main {
@@ -43,34 +44,32 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Add animated banner
+# === Display GIF Banner ===
 display_gif = "assets/holland_bridge.gif"
 if os.path.exists(display_gif):
     st.markdown("<h2 style='text-align: center;'>Welcome to The Holland Bridge</h2>", unsafe_allow_html=True)
     st.image(display_gif, use_container_width=True)
 
-# Stepper state in session
+# === Step State Tracking ===
 if 'step' not in st.session_state:
     st.session_state.step = 1
 
-# Safe initialization of required session keys
+# === Session Initialization ===
 default_keys = {
-    "holland": [],
-    "values": [],
+    "holland": [], "values": [],
     "name_1": "", "admire_1": "", "reject_1": "",
     "name_2": "", "admire_2": "", "reject_2": "",
     "name_3": "", "admire_3": "", "reject_3": "",
     "name_4": "", "admire_4": "", "reject_4": "",
     "interpersonal": "", "timeframe": "", "workstyle": "",
     "inductive": "", "sequential": "", "spatial": "",
-    "idea": "", "numeric": "",
-    "industry_avoid": ""
+    "idea": "", "numeric": "", "industry_avoid": ""
 }
 for k, v in default_keys.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# Step navigation
+# === Navigation Buttons ===
 col1, col2, col3 = st.columns([1, 5, 1])
 with col1:
     if st.button("⬅️ Back", disabled=st.session_state.step == 1):
@@ -81,41 +80,33 @@ with col3:
 
 st.markdown("---")
 
-# Step 1 – Holland Codes
+# === Stepper UI ===
 if st.session_state.step == 1:
     st.header("Please select your first interest from the Holland Codes")
-    st.multiselect(
-        "Pick up to 3 codes that best reflect you:",
+    st.multiselect("Pick up to 3 codes that best reflect you:",
         ["Realistic", "Investigative", "Artistic", "Social", "Enterprising", "Conventional"],
-        max_selections=3,
-        key="holland"
-    )
+        max_selections=3, key="holland")
 
-# Step 2 – Core Values (Values Bridge)
 elif st.session_state.step == 2:
     st.header("Your Top 5 Core Values – The Values Bridge Results")
-    values_options = [
-        "Cosmos", "Scope", "Luminance", "Workcentrism", "Radius",
-        "Non Sibi", "Agency", "Achievement", "Voice", "Beholderism",
-        "Belonging", "Familycentrism", "Place", "Eudemonia", "Affluence"
-    ]
-    st.multiselect("Please enter your Top 5 Core Values from your results of the values bridge below:", values_options, max_selections=5, key="values")
+    st.multiselect("Please enter your Top 5 Core Values:",
+        ["Cosmos", "Scope", "Luminance", "Workcentrism", "Radius",
+         "Non Sibi", "Agency", "Achievement", "Voice", "Beholderism",
+         "Belonging", "Familycentrism", "Place", "Eudemonia", "Affluence"],
+        max_selections=5, key="values")
 
-# Step 3 – Admired Lives
 elif st.session_state.step == 3:
     st.header("Whose Life Do You Want Anyway?")
     for i in range(1, 5):
         with st.expander(f"Person {i} - Name of the person"):
-            st.text_input(f"Who is the person whose life you admire or desire?", key=f"name_{i}")
-            st.text_area("Here are the main reasons I love, desire, or otherwise covet the life this person leads. What about this person’s life appeals to you? Consider their career, relationships, lifestyle, values, or achievements.", key=f"admire_{i}")
-            st.text_area("Um, no thank you. What aspects of this person’s life do you not want for yourself?", key=f"reject_{i}")
+            st.text_input("Who is the person whose life you admire or desire?", key=f"name_{i}")
+            st.text_area("What about their life appeals to you?", key=f"admire_{i}")
+            st.text_area("What do you not want from their life?", key=f"reject_{i}")
 
-# Step 4 – YouScience Traits
 elif st.session_state.step == 4:
     st.header("YouScience Results")
     def radio_group(label, options, key):
         return st.radio(label, options, horizontal=True, key=key)
-
     radio_group("Interpersonal Style", ["Introvert", "Blended Energizer", "Extrovert"], "interpersonal")
     radio_group("Timeframe Orientation", ["Future Focuser", "Balanced Focuser", "Present Focuser"], "timeframe")
     radio_group("Work Approach", ["Generalist", "Liaison", "Specialist"], "workstyle")
@@ -125,12 +116,10 @@ elif st.session_state.step == 4:
     radio_group("Idea Generation", ["Brainstormer", "Idea Contributor", "Concentrated Focuser"], "idea")
     radio_group("Numerical Reasoning", ["Numerical Detective", "Numerical Predictor", "Numerical Checker"], "numeric")
 
-# Step 5 – Industry Avoidance
 elif st.session_state.step == 5:
     st.header("What Industries Do You Want to Avoid?")
-    st.text_area("Please mention industries or sectors you know you would not want to work in:", key="industry_avoid")
+    st.text_area("Please mention industries you want to avoid:", key="industry_avoid")
 
-# Step 6 – Contact Info and Submit
 elif st.session_state.step == 6:
     st.header("Contact Information")
     first_name = st.text_input("First Name")
@@ -191,17 +180,17 @@ Include 6 megatrends. For each:
 {base_prompt}
 """
 
-        openai.api_key = st.secrets["openai"]["api_key"]
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY") or st.secrets["openai"]["api_key"])
 
         with st.spinner("Generating AI insights..."):
-            roles_response = openai.ChatCompletion.create(
+            roles_response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": roles_prompt}],
                 temperature=0.7
             )
             roles_html = roles_response.choices[0].message.content
 
-            industries_response = openai.ChatCompletion.create(
+            industries_response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": industries_prompt}],
                 temperature=0.7
@@ -233,4 +222,3 @@ Include 6 megatrends. For each:
             smtp.send_message(msg)
 
         st.success("Success! Your results have been emailed to you.")
-
