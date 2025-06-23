@@ -167,29 +167,44 @@ elif st.session_state.step == 6:
 """
 
         roles_prompt = f"""
-You are a career strategist. Generate a PDF-style HTML content titled:
+You are a career strategist. Write a well-formatted HTML report titled:
 <h1>{first_name} {last_name} – The Holland Bridge – Aligned Roles</h1>
-Include 6 aligned job roles. For each:
-<b>[Role Name]</b>
-<ul><li><strong>Why it fits:</strong> {{reason}}</li>
-<li><strong>What success looks like:</strong> {{description}}</li>
-<li><strong>Potential job titles:</strong> {{titles}}</li>
+
+Generate 6 aligned job roles based on the user's inputs below. For each role, include:
+
+<b>Role X: [Insert Role Name Here]</b>
+<ul>
+  <li><strong>Why it fits:</strong> Explain why this role aligns with the user’s profile (Holland codes, values, YouScience traits, admired lives).</li>
+  <li><strong>What success looks like:</strong> Describe what success in this role looks like for someone with this user’s strengths.</li>
+  <li><strong>Potential job titles:</strong> Give 3–5 realistic job titles for this role.</li>
 </ul>
+
+At the end, include a short summary paragraph tying together the common themes across all 6 roles.
+
+USER INPUTS:
 {base_prompt}
 """
 
+
         industries_prompt = f"""
-You are a career strategist. Generate a PDF-style HTML content titled:
+You are a career strategist. Write a well-formatted HTML report titled:
 <h1>{first_name} {last_name} – The Holland Bridge – Aligned Megatrends and Industries</h1>
-Include 6 megatrends. For each:
+
+Generate 6 aligned megatrends based on the user’s profile. For each megatrend, include:
+
 <b>[Megatrend Name]</b>
 <ul>
-<li><strong>Why it fits:</strong> {{reason}}</li>
-<li><strong>Examples of trends and industries:</strong> {{examples}}</li>
-<li><strong>Industries:</strong> {{industries}}</li>
+  <li><strong>Why it fits:</strong> Explain how this trend connects to the user’s values, interests, and cognitive traits.</li>
+  <li><strong>Examples of trends and innovations:</strong> Mention relevant technologies, social changes, or shifts shaping this trend.</li>
+  <li><strong>Industries:</strong> List 3–5 industries linked to this trend.</li>
 </ul>
+
+Do not include any summary or closing paragraph. End right after the sixth trend.
+
+USER INPUTS:
 {base_prompt}
 """
+
 
         client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY") or st.secrets["openai"]["api_key"])
 
